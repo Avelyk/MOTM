@@ -17,18 +17,16 @@ Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
    npm install
 
 4. **Set up environment variables:**
-   CONTACT OWNER FOR KEY 
-   Create a .env file in the root directory and add the required credentials (contact the repo owner for the API key):
    ```bash
-   CONTACT OWNER FOR KEY 
+   ** CONTACT OWNER FOR KEY **
+   Create a .env file in the root directory and add the required credentials (contact the repo owner for the API key):
 
 6. **Run the local server:**
-Development mode (auto-reloads on code changes)
    ```bash
+   #Development mode (auto-reloads on code changes)
    npm run dev
 
-Standard mode (needs to turn off server and rerun for changes made)
-   ```bash
+   #Standard mode (needs to turn off server and rerun for changes made)
    node index.js
 
 8. **Access the application:**
