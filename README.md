@@ -23,6 +23,11 @@ Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
    CONTACT OWNER FOR KEY 
 
 6. **Run the local server:**
+Development mode (auto-reloads on code changes)
+   ```bash
+   npm run dev
+
+Standard mode (needs to turn off server and rerun for changes made)
    ```bash
    node index.js
 
