@@ -6,6 +6,10 @@
     --accent: #1f6f4f;
     --accent-soft: #e4efe8;
     --danger: #a3402f;
+    --tab-red: #f0443a;
+    --tab-blue: #4d8bea;
+    --tab-green: #119b55;
+    --tab-yellow: #f4b400;
 }
 
 * { box-sizing: border-box; }
@@ -20,70 +24,50 @@ body {
 
 .header {
     width: 100%;
-
-    background: var(--navy);
-
     color: white;
-
     padding: 20px 40px;
-
-    background-color: blue;
+    background-color: navy;
 }
 
 .header-content {
     width: 100%;
     max-width: 1260px;
-
     margin: 0 auto;
-
     display: flex;
-
     align-items: center;
-
     gap: 20px;
 }
 
 .logo-container {
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     flex-shrink: 0;
 }
 
 .logo {
     width: 120px;
     height: 70px;
-
     object-fit: contain;
 }
 
 .header-text {
     display: flex;
-
     flex-direction: column;
-
     justify-content: center;
 }
 
 .department {
     font-size: 15px;
-
     font-weight: 700;
-
     margin-bottom: 2px;
 }
 
 .header h1 {
     margin: 0;
-
     font-size: 30px;
-
     line-height: 1.05;
-
     font-weight: 800;
-
     letter-spacing: -0.5px;
 }
 
@@ -115,27 +99,48 @@ main {
 }
 
 .input-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--line);
+    display: flex;
+    width: 100%;
+    margin-bottom: 10px;
 }
 
-.input-tabs button {
-  font-family: inherit;
-  font-size: 14px;
-  background: none;
-  border: none;
-  padding: 8px 4px 10px;
-  margin-right: 20px;
-  color: var(--ink-soft);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
+.input-tabs .tab {
+    width: 67px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        transform 0.15s ease,
+        filter 0.15s ease;
 }
 
-.input-tabs button.active {
-  color: var(--ink);
-  border-bottom-color: var(--accent);
+.input-tabs .tab:hover {
+    filter: brightness(0.94);
+}
+
+.input-tabs .tab.active {
+    transform: scaleY(1.12);
+    transform-origin: bottom;
+}
+
+#text-tab {
+    background: var(--tab-red);
+}
+
+#file-tab {
+    background: var(--tab-blue);
+}
+
+#link-tab {
+    background: var(--tab-green);
+}
+
+#input-tab {
+    background: var(--tab-yellow);
 }
 
 textarea {
