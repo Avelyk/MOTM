@@ -147,6 +147,73 @@
     color: var(--ink);
   }
 
+  .docu-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .docu-upload-box {
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    padding: 20px;
+    background: #faf9f6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .docu-upload-box input[type="file"] { display: none; }
+
+  .docu-upload-box label {
+    font-size: 13px;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    font-weight: 600;
+  }
+
+  .docu-preview-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .docu-thumb-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+
+  .docu-thumb-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .docu-thumb-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .actions {
     display: flex;
     align-items: center;
@@ -230,6 +297,30 @@
     font-size: 13px;
   }
 
+    .docu-output-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 12px;
+    }
+
+    .docu-output-card {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 12px;
+    background: #fff;
+    text-align: center;
+    }
+
+    .docu-output-card img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 2px;
+    display: block;
+    margin: 0 auto;
+    }
+
   .export-row {
     display: flex;
     align-items: center;
@@ -275,15 +366,14 @@
     overflow: visible !important;
   }
 
-  /* Prevent awkward splits across PDF page breaks */
   .mom-table, 
   .discussion-block,
-  .mom-table tr {
+  .mom-table tr,
+  .docu-output-card {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
-  /* Styles active ONLY during PDF rendering */
   .rendering-pdf#pdf-export-container {
     width: 100%;
     max-width: 750px;
@@ -337,6 +427,17 @@
       </div>
     </div>
 
+    <div class="docu-section">
+      <h2>Documentation / Photos</h2>
+      <p class="hint">Attach images (e.g. whiteboard notes, attendance sheets, photos) to include in the formatted result.</p>
+      <div class="docu-upload-box">
+        <label for="docu-file-input">Click here to add images</label>
+        <input type="file" id="docu-file-input" accept="image/*" multiple>
+        <span style="font-size: 12px; color: var(--ink-soft);">Supports PNG, JPG, JPEG</span>
+      </div>
+      <div id="docu-preview-grid" class="docu-preview-grid"></div>
+    </div>
+
     <div class="actions">
       <button class="primary" id="format-btn">Format minutes</button>
       <span class="status" id="status-text"></span>
@@ -346,20 +447,18 @@
   <section class="panel" id="output-panel">
     <h2>Structured minutes</h2>
     <p class="hint">Click any field to edit before exporting.</p>
-    
-    <!-- Printable Container -->
     <div id="pdf-export-container">
-        <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
-        <div id="output-content"></div>
+      <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
+      <div id="output-content"></div>
     </div>
 
     <div class="export-row">
-        <button class="secondary" id="copy-btn">Copy as text</button>
-        
-        <div class="download-group">
-            <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
-            <button class="secondary" id="download-pdf-btn">Download .pdf</button>
-        </div>
+      <button class="secondary" id="copy-btn">Copy as text</button>
+      
+      <div class="download-group">
+        <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
+        <button class="secondary" id="download-pdf-btn">Download .pdf</button>
+      </div>
     </div>
   </section>
 
@@ -370,7 +469,7 @@
   pdfjsLib.GlobalWorkerOptions.workerSrc = 
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-  // ---- Tab switching between paste / upload ----
+  // ---- Tab switching ----
   const tabButtons = document.querySelectorAll('.input-tabs button');
   tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -381,7 +480,7 @@
     });
   });
 
-  // ---- File upload handling ----
+  // ---- Main file input handling ----
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
   const fileNameEl = document.getElementById('file-name');
@@ -406,6 +505,43 @@
       fileNameEl.textContent = 'Selected: ' + uploadedFile.name;
     }
   });
+
+  // ---- Documentation Image Handling ----
+  const docuFileInput = document.getElementById('docu-file-input');
+  const docuPreviewGrid = document.getElementById('docu-preview-grid');
+  let documentationImages = []; // Stores Data URLs
+
+  docuFileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        documentationImages.push(event.target.result);
+        renderDocuPreviews();
+      };
+      reader.readAsDataURL(file);
+    });
+    docuFileInput.value = '';
+  });
+
+  function renderDocuPreviews() {
+    docuPreviewGrid.innerHTML = '';
+    documentationImages.forEach((dataUrl, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'docu-thumb-wrapper';
+      wrapper.innerHTML = `
+        <img src="${dataUrl}" alt="Documentation Thumbnail">
+        <button class="docu-thumb-remove" onclick="removeDocuImage(${index})">&times;</button>
+      `;
+      docuPreviewGrid.appendChild(wrapper);
+    });
+  }
+
+  function removeDocuImage(index) {
+    documentationImages.splice(index, 1);
+    renderDocuPreviews();
+  }
 
   // ---- File Parsers (.txt, .docx, .pdf) ----
   function readTxtFile(file) {
@@ -532,6 +668,22 @@
       </tr>
     `).join('');
 
+    let documentationHtml = '';
+    if (documentationImages.length > 0) {
+      const imageCards = documentationImages.map(img => `
+        <div class="docu-output-card">
+          <img src="${img}" alt="Documentation Photo">
+        </div>
+      `).join('');
+
+      documentationHtml = `
+        <h3 style="font-size:15px; margin: 20px 0 10px;">Documentation</h3>
+        <div class="docu-output-grid">
+          ${imageCards}
+        </div>
+      `;
+    }
+
     outputContent.innerHTML = `
       <table class="mom-table">
         <tr><th>Meeting title</th><td contenteditable="true">${escapeHtml(d.meetingTitle)}</td></tr>
@@ -557,6 +709,8 @@
       <table class="mom-table">
         <tr><th>Meeting adjourned at</th><td contenteditable="true">${escapeHtml(d.adjournedAt)}</td></tr>
       </table>
+
+      ${documentationHtml}
     `;
 
     const filenameInput = document.getElementById('filename-input');

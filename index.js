@@ -22,7 +22,6 @@ const minutesSchema = {
     noteTaker: { type: Type.STRING },
     timeAllotted: { type: Type.STRING },
 
-
     discussion: {
       type: Type.ARRAY,
       items: {
@@ -60,8 +59,7 @@ app.post('/api/format-minutes', async (req, res) => {
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
       config: {
-        //This is what you are prompting into the AI model. You can customize this prompt.
-        systemInstruction: 'You are an executive assistant formatting messy meeting notes into structured minutes.',
+        systemInstruction: 'You are an executive assistant formatting messy meeting notes into structured minutes. If details like facilitators, note takers, mode, or adjournment time are omitted from the text, return "—" for those values.',
         responseMimeType: 'application/json',
         responseSchema: minutesSchema
       },
@@ -69,13 +67,31 @@ app.post('/api/format-minutes', async (req, res) => {
     });
 
     const parsedData = JSON.parse(response.text);
-    res.json(parsedData);
+
+    // Apply safe defaults for unreturned optional fields
+    const formattedResult = {
+      meetingTitle: parsedData.meetingTitle || 'Meeting Minutes',
+      date: parsedData.date || '—',
+      time: parsedData.time || '—',
+      mode: parsedData.mode || '—',
+      attendees: parsedData.attendees || '—',
+      absentees: parsedData.absentees || '—',
+      facilitator: parsedData.facilitator || '—',
+      noteTaker: parsedData.noteTaker || '—',
+      timeAllotted: parsedData.timeAllotted || '—',
+      discussion: parsedData.discussion || [],
+      actionItems: parsedData.actionItems || [],
+      adjournedAt: parsedData.adjournedAt || '—'
+    };
+
+    res.json(formattedResult);
   } catch (error) {
     console.error("Error generating minutes:", error);
     res.status(500).json({ error: "Failed to format minutes" });
   }
 });
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
