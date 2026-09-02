@@ -232,8 +232,28 @@
 
   .export-row {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
     margin-top: 20px;
+  }
+
+  .download-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .filename-input {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    width: 180px;
+    background: #fff;
+    color: var(--ink);
   }
 
   button.secondary {
@@ -323,7 +343,7 @@
     </div>
   </section>
 
-    <section class="panel" id="output-panel">
+  <section class="panel" id="output-panel">
     <h2>Structured minutes</h2>
     <p class="hint">Click any field to edit before exporting.</p>
     
@@ -335,14 +355,18 @@
 
     <div class="export-row">
         <button class="secondary" id="copy-btn">Copy as text</button>
-        <button class="secondary" id="download-pdf-btn">Download .pdf</button>
+        
+        <div class="download-group">
+            <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
+            <button class="secondary" id="download-pdf-btn">Download .pdf</button>
+        </div>
     </div>
-    </section>
+  </section>
 
 </main>
 
 <script>
-  // Initialize PDF.js worker (CDN must match the version in your <head>)
+  // Initialize PDF.js worker
   pdfjsLib.GlobalWorkerOptions.workerSrc = 
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -429,7 +453,10 @@
     throw new Error('Unsupported file format');
   }
 
-  // ---- Format button click handler ----
+  function sanitizeFilename(name) {
+    return name.replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+  }
+
   const formatBtn = document.getElementById('format-btn');
   const statusText = document.getElementById('status-text');
   const outputPanel = document.getElementById('output-panel');
@@ -485,9 +512,8 @@
     }
   });
 
-  // ---- Render JSON into template ----
   function renderMinutes(d) {
-    const discussionHtml = d.discussion.map(item => `
+    const discussionHtml = (d.discussion || []).map(item => `
       <div class="discussion-block">
         <h3>${escapeHtml(item.agendaItem)}</h3>
         <ul>
@@ -497,7 +523,7 @@
       </div>
     `).join('');
 
-    const actionRows = d.actionItems.map(a => `
+    const actionRows = (d.actionItems || []).map(a => `
       <tr>
         <td contenteditable="true">${escapeHtml(a.task)}</td>
         <td contenteditable="true">${escapeHtml(a.person)}</td>
@@ -532,6 +558,12 @@
         <tr><th>Meeting adjourned at</th><td contenteditable="true">${escapeHtml(d.adjournedAt)}</td></tr>
       </table>
     `;
+
+    const filenameInput = document.getElementById('filename-input');
+    if (filenameInput) {
+      const rawTitle = d.meetingTitle && d.meetingTitle !== '—' ? d.meetingTitle : 'Meeting_Minutes';
+      filenameInput.value = sanitizeFilename(rawTitle);
+    }
   }
 
   function escapeHtml(str) {
@@ -548,44 +580,52 @@
     statusText.classList.remove('error');
   });
 
-document.getElementById('download-pdf-btn').addEventListener('click', async () => {
-  const element = document.getElementById('pdf-export-container');
-  const statusText = document.getElementById('status-text');
-  const pdfBtn = document.getElementById('download-pdf-btn');
+  document.getElementById('download-pdf-btn').addEventListener('click', async () => {
+    const element = document.getElementById('pdf-export-container');
+    const statusText = document.getElementById('status-text');
+    const pdfBtn = document.getElementById('download-pdf-btn');
+    const filenameInput = document.getElementById('filename-input');
 
-  pdfBtn.disabled = true;
-  statusText.textContent = 'Generating PDF…';
+    let userFilename = filenameInput ? filenameInput.value.trim() : 'Meeting_Minutes';
+    if (!userFilename) userFilename = 'Meeting_Minutes';
+    
+    if (!userFilename.toLowerCase().endsWith('.pdf')) {
+      userFilename += '.pdf';
+    }
 
-  element.classList.add('rendering-pdf');
+    pdfBtn.disabled = true;
+    statusText.textContent = 'Generating PDF…';
 
-  const options = {
-    margin:       [10, 10, 10, 10], // Slightly smaller margins
-    filename:     'Meeting_Minutes.pdf',
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { 
-      scale: 2, 
-      useCORS: true, 
-      logging: false,
-      scrollX: 0,   // Prevents blank page offset
-      scrollY: 0    // Prevents content shifting
-    },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    // Enable smart page breaks for multi-page documents
-    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-  };
+    element.classList.add('rendering-pdf');
 
-  try {
-    await html2pdf().set(options).from(element).save();
-    statusText.textContent = 'PDF downloaded successfully!';
-  } catch (err) {
-    console.error('PDF generation error:', err);
-    statusText.textContent = 'Failed to generate PDF.';
-    statusText.classList.add('error');
-  } finally {
-    element.classList.remove('rendering-pdf');
-    pdfBtn.disabled = false;
-  }
-});
+    const options = {
+      margin:       [10, 10, 10, 10],
+      filename:     userFilename,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true, 
+        logging: false,
+        scrollX: 0,
+        scrollY: 0
+      },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    try {
+      await html2pdf().set(options).from(element).save();
+      statusText.textContent = `Downloaded "${userFilename}" successfully!`;
+      statusText.classList.remove('error');
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      statusText.textContent = 'Failed to generate PDF.';
+      statusText.classList.add('error');
+    } finally {
+      element.classList.remove('rendering-pdf');
+      pdfBtn.disabled = false;
+    }
+  });
 </script>
 
 </body>
