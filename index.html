@@ -40,7 +40,7 @@
       <button type="button" class="tab" id="input-tab" data-tab="upload">INPUT</button>
     </div>
 
-    <div id="tab-paste">
+    <div id="raw-input-container">
       <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
     </div>
 
@@ -54,12 +54,11 @@
     </div>
 
     <div class="docu-section">
-      <h2>Documentation / Photos</h2>
-      <p class="hint">Attach images (e.g. whiteboard notes, attendance sheets, photos) to include in the formatted result.</p>
+      <h2 id="docu-title">Documentation / Photos</h2>
       <div class="docu-upload-box">
-        <label for="docu-file-input">Click here to add images</label>
+        <label for="docu-file-input">Add Images...</label>
         <input type="file" id="docu-file-input" accept="image/*" multiple>
-        <span style="font-size: 12px; color: var(--ink-soft);">Supports PNG, JPG, JPEG</span>
+        <span style="font-size: 9px; color: var(--navy); font-weight: 600;">Allows PNG, JPG, JPEG</span>
       </div>
       <div id="docu-preview-grid" class="docu-preview-grid"></div>
     </div>
