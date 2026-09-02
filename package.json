@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "@google/genai": "^2.20.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "name": "motm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

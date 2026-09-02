@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minutes formatter</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Minutes formatter</h1>
+  <p>Paste or upload raw meeting notes. It comes back structured to match the standard minutes template — edit anything before you export.</p>
+</header>
+
+<main>
+
+  <section class="panel">
+    <h2>Raw minutes</h2>
+    <p class="hint">Choose how you want to bring in the notes.</p>
+
+    <div class="input-tabs">
+      <button type="button" class="active" data-tab="paste">Paste text</button>
+      <button type="button" data-tab="upload">Upload file</button>
+    </div>
+
+    <div id="tab-paste">
+      <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
+    </div>
+
+    <div id="tab-upload" style="display:none;">
+      <div class="drop-zone" id="drop-zone">
+        <p>Drag a .txt or .docx file here, or .pdf</p>
+        <label for="file-input">browse files</label>
+        <input type="file" id="file-input" accept=".txt,.docx,.pdf">
+        <div id="file-name"></div>
+      </div>
+    </div>
+
+    <div class="docu-section">
+      <h2>Documentation / Photos</h2>
+      <p class="hint">Attach images (e.g. whiteboard notes, attendance sheets, photos) to include in the formatted result.</p>
+      <div class="docu-upload-box">
+        <label for="docu-file-input">Click here to add images</label>
+        <input type="file" id="docu-file-input" accept="image/*" multiple>
+        <span style="font-size: 12px; color: var(--ink-soft);">Supports PNG, JPG, JPEG</span>
+      </div>
+      <div id="docu-preview-grid" class="docu-preview-grid"></div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="format-btn">Format minutes</button>
+      <span class="status" id="status-text"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="output-panel">
+    <h2>Structured minutes</h2>
+    <p class="hint">Click any field to edit before exporting.</p>
+    <div id="pdf-export-container">
+      <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
+      <div id="output-content"></div>
+    </div>
+
+    <div class="export-row">
+      <button class="secondary" id="copy-btn">Copy as text</button>
+      
+      <div class="download-group">
+        <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
+        <button class="secondary" id="download-pdf-btn">Download .pdf</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Initialize PDF.js worker
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  // ---- Tab switching ----
+  const tabButtons = document.querySelectorAll('.input-tabs button');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-paste').style.display = btn.dataset.tab === 'paste' ? 'block' : 'none';
+      document.getElementById('tab-upload').style.display = btn.dataset.tab === 'upload' ? 'block' : 'none';
+    });
+  });
+
+  // ---- Main file input handling ----
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileNameEl = document.getElementById('file-name');
+  let uploadedFile = null;
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) {
+      uploadedFile = fileInput.files[0];
+      fileNameEl.textContent = 'Selected: ' + uploadedFile.name;
+    }
+  });
+
+  ['dragover', 'dragleave', 'drop'].forEach(evt => {
+    dropZone.addEventListener(evt, e => e.preventDefault());
+  });
+  dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      uploadedFile = e.dataTransfer.files[0];
+      fileNameEl.textContent = 'Selected: ' + uploadedFile.name;
+    }
+  });
+
+  // ---- Documentation Image Handling ----
+  const docuFileInput = document.getElementById('docu-file-input');
+  const docuPreviewGrid = document.getElementById('docu-preview-grid');
+  let documentationImages = []; // Stores Data URLs
+
+  docuFileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        documentationImages.push(event.target.result);
+        renderDocuPreviews();
+      };
+      reader.readAsDataURL(file);
+    });
+    docuFileInput.value = '';
+  });
+
+  function renderDocuPreviews() {
+    docuPreviewGrid.innerHTML = '';
+    documentationImages.forEach((dataUrl, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'docu-thumb-wrapper';
+      wrapper.innerHTML = `
+        <img src="${dataUrl}" alt="Documentation Thumbnail">
+        <button class="docu-thumb-remove" onclick="removeDocuImage(${index})">&times;</button>
+      `;
+      docuPreviewGrid.appendChild(wrapper);
+    });
+  }
+
+  function removeDocuImage(index) {
+    documentationImages.splice(index, 1);
+    renderDocuPreviews();
+  }
+
+  // ---- File Parsers (.txt, .docx, .pdf) ----
+  function readTxtFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  }
+
+  function readDocxFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        mammoth.extractRawText({ arrayBuffer: e.target.result })
+          .then((result) => resolve(result.value))
+          .catch((err) => reject(err));
+      };
+      reader.onerror = (e) => reject(e);
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  async function readPdfFile(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item) => item.str).join(' ');
+      fullText += pageText + '\n';
+    }
+
+    return fullText;
+  }
+
+  async function extractTextFromFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'txt') return await readTxtFile(file);
+    if (ext === 'docx') return await readDocxFile(file);
+    if (ext === 'pdf') return await readPdfFile(file);
+    throw new Error('Unsupported file format');
+  }
+
+  function sanitizeFilename(name) {
+    return name.replace(/[/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+  }
+
+  const formatBtn = document.getElementById('format-btn');
+  const statusText = document.getElementById('status-text');
+  const outputPanel = document.getElementById('output-panel');
+  const outputContent = document.getElementById('output-content');
+
+  formatBtn.addEventListener('click', async () => {
+    const activeTab = document.querySelector('.input-tabs button.active').dataset.tab;
+    let textToFormat = '';
+
+    statusText.classList.remove('error');
+
+    try {
+      if (activeTab === 'paste') {
+        textToFormat = document.getElementById('raw-text').value.trim();
+        if (!textToFormat) {
+          statusText.textContent = 'Paste some notes first.';
+          statusText.classList.add('error');
+          return;
+        }
+      } else if (activeTab === 'upload') {
+        if (!uploadedFile) {
+          statusText.textContent = 'Choose a file first.';
+          statusText.classList.add('error');
+          return;
+        }
+        statusText.textContent = 'Reading file…';
+        formatBtn.disabled = true;
+        textToFormat = await extractTextFromFile(uploadedFile);
+      }
+
+      statusText.textContent = 'Formatting…';
+      formatBtn.disabled = true;
+
+      const response = await fetch('/api/format-minutes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rawText: textToFormat })
+      });
+
+      if (!response.ok) throw new Error("Request failed");
+
+      const data = await response.json();
+
+      renderMinutes(data);
+      outputPanel.classList.add('visible');
+      statusText.textContent = 'Done — review and edit below.';
+    } catch (err) {
+      console.error(err);
+      statusText.textContent = 'Something went wrong while reading or formatting. Try again.';
+      statusText.classList.add('error');
+    } finally {
+      formatBtn.disabled = false;
+    }
+  });
+
+  function renderMinutes(d) {
+    const discussionHtml = (d.discussion || []).map(item => `
+      <div class="discussion-block">
+        <h3>${escapeHtml(item.agendaItem)}</h3>
+        <ul>
+          <li contenteditable="true"><strong>Key discussion points:</strong> ${escapeHtml(item.keyPoints)}</li>
+          <li contenteditable="true"><strong>Decisions made:</strong> ${escapeHtml(item.decisions)}</li>
+        </ul>
+      </div>
+    `).join('');
+
+    const actionRows = (d.actionItems || []).map(a => `
+      <tr>
+        <td contenteditable="true">${escapeHtml(a.task)}</td>
+        <td contenteditable="true">${escapeHtml(a.person)}</td>
+        <td contenteditable="true">${escapeHtml(a.dueDate)}</td>
+        <td contenteditable="true">${escapeHtml(a.status)}</td>
+      </tr>
+    `).join('');
+
+    let documentationHtml = '';
+    if (documentationImages.length > 0) {
+      const imageCards = documentationImages.map(img => `
+        <div class="docu-output-card">
+          <img src="${img}" alt="Documentation Photo">
+        </div>
+      `).join('');
+
+      documentationHtml = `
+        <h3 style="font-size:15px; margin: 20px 0 10px;">Documentation</h3>
+        <div class="docu-output-grid">
+          ${imageCards}
+        </div>
+      `;
+    }
+
+    outputContent.innerHTML = `
+      <table class="mom-table">
+        <tr><th>Meeting title</th><td contenteditable="true">${escapeHtml(d.meetingTitle)}</td></tr>
+        <tr><th>Date</th><td contenteditable="true">${escapeHtml(d.date)}</td></tr>
+        <tr><th>Time</th><td contenteditable="true">${escapeHtml(d.time)}</td></tr>
+        <tr><th>Mode / location</th><td contenteditable="true">${escapeHtml(d.mode)}</td></tr>
+        <tr><th>Attendees</th><td contenteditable="true">${escapeHtml(d.attendees)}</td></tr>
+        <tr><th>Absentees</th><td contenteditable="true">${escapeHtml(d.absentees)}</td></tr>
+        <tr><th>Facilitator</th><td contenteditable="true">${escapeHtml(d.facilitator)}</td></tr>
+        <tr><th>Note taker</th><td contenteditable="true">${escapeHtml(d.noteTaker)}</td></tr>
+        <tr><th>Time allotted</th><td contenteditable="true">${escapeHtml(d.timeAllotted)}</td></tr>
+      </table>
+
+      <h3 style="font-size:15px; margin: 0 0 10px;">Discussion</h3>
+      ${discussionHtml}
+
+      <h3 style="font-size:15px; margin: 20px 0 10px;">Action items</h3>
+      <table class="mom-table" id="action-items-table">
+        <tr><th>Task</th><th>Person responsible</th><th>Due date</th><th>Status</th></tr>
+        ${actionRows}
+      </table>
+
+      <table class="mom-table">
+        <tr><th>Meeting adjourned at</th><td contenteditable="true">${escapeHtml(d.adjournedAt)}</td></tr>
+      </table>
+
+      ${documentationHtml}
+    `;
+
+    const filenameInput = document.getElementById('filename-input');
+    if (filenameInput) {
+      const rawTitle = d.meetingTitle && d.meetingTitle !== '—' ? d.meetingTitle : 'Meeting_Minutes';
+      filenameInput.value = sanitizeFilename(rawTitle);
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  // ---- Copy / Export ----
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const text = outputContent.innerText;
+    navigator.clipboard.writeText(text);
+    statusText.textContent = 'Copied to clipboard.';
+    statusText.classList.remove('error');
+  });
+
+  document.getElementById('download-pdf-btn').addEventListener('click', async () => {
+    const element = document.getElementById('pdf-export-container');
+    const statusText = document.getElementById('status-text');
+    const pdfBtn = document.getElementById('download-pdf-btn');
+    const filenameInput = document.getElementById('filename-input');
+
+    let userFilename = filenameInput ? filenameInput.value.trim() : 'Meeting_Minutes';
+    if (!userFilename) userFilename = 'Meeting_Minutes';
+    
+    if (!userFilename.toLowerCase().endsWith('.pdf')) {
+      userFilename += '.pdf';
+    }
+
+    pdfBtn.disabled = true;
+    statusText.textContent = 'Generating PDF…';
+
+    element.classList.add('rendering-pdf');
+
+    const options = {
+      margin:       [10, 10, 10, 10],
+      filename:     userFilename,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true, 
+        logging: false,
+        scrollX: 0,
+        scrollY: 0
+      },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    try {
+      await html2pdf().set(options).from(element).save();
+      statusText.textContent = `Downloaded "${userFilename}" successfully!`;
+      statusText.classList.remove('error');
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      statusText.textContent = 'Failed to generate PDF.';
+      statusText.classList.add('error');
+    } finally {
+      element.classList.remove('rendering-pdf');
+      pdfBtn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>
