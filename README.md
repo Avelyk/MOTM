@@ -13,23 +13,18 @@ Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
    ```bash
    git clone [https://github.com/Avelyk/MOTM.git](https://github.com/Avelyk/MOTM.git)
    cd MOTM
-   
 Install dependencies:
-```bash
-npm install 
-
-
+Bash
+npm install
 Set up environment variables:
-Create a .env file in the root directory and add your API key:
+Create a .env file in the root directory and add the required credentials (contact the repo owner for the API key):
 Plaintext
-"ASK OWNER ABOUT THIS TO GET THE KEY AND PORT
-
-
+GEMINI_API_KEY=your_api_key_here
+PORT=3000
 Run the local server:
-```bash
+Bash
 node index.js
-
-
+Access the application:
 Open your browser and navigate to:
-```Plaintext
+Plaintext
 http://localhost:3000
