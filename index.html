@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minutes formatter</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --ink: #1c2b24;
+    --ink-soft: #4d5c54;
+    --paper: #f6f5f0;
+    --line: #d8d5c9;
+    --accent: #1f6f4f;
+    --accent-soft: #e4efe8;
+    --danger: #a3402f;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.55;
+  }
+
+  header {
+    padding: 48px 24px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    color: var(--ink-soft);
+    font-size: 15px;
+    margin: 0;
+    max-width: 60ch;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    display: grid;
+    gap: 28px;
+  }
+
+  .panel {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 6px;
+    padding: 24px;
+  }
+
+  .panel h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  .panel .hint {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 16px;
+  }
+
+  .input-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .input-tabs button {
+    font-family: inherit;
+    font-size: 14px;
+    background: none;
+    border: none;
+    padding: 8px 4px 10px;
+    margin-right: 20px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+
+  .input-tabs button.active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    resize: vertical;
+    background: #fdfdfb;
+    color: var(--ink);
+  }
+
+  textarea:focus, input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .drop-zone {
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+
+  .drop-zone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .drop-zone input[type="file"] { display: none; }
+
+  .drop-zone label {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  #file-name {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  button.primary {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  button.primary:disabled {
+    background: #a9b8ae;
+    cursor: not-allowed;
+  }
+
+  .status {
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .status.error { color: var(--danger); }
+
+  #output-panel { display: none; }
+
+  #output-panel.visible { display: block; }
+
+  .mom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .mom-table th, .mom-table td {
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .mom-table th {
+    background: var(--accent-soft);
+    width: 32%;
+    font-weight: 600;
+  }
+
+  .mom-table td[contenteditable="true"]:focus,
+  .mom-table th[contenteditable="true"]:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .discussion-block {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .discussion-block h3 {
+    font-size: 14px;
+    margin: 0 0 8px;
+  }
+
+  .discussion-block ul {
+    margin: 6px 0 0;
+    padding-left: 20px;
+    font-size: 14px;
+  }
+
+  #action-items-table th, #action-items-table td {
+    font-size: 13px;
+  }
+
+  .export-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  button.secondary {
+    font-family: inherit;
+    font-size: 13px;
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  /* ---- PDF Export Fixes & Rules ---- */
+
+  #pdf-export-container {
+    padding: 0;
+    background: #ffffff;
+    overflow: visible !important;
+  }
+
+  /* Prevent awkward splits across PDF page breaks */
+  .mom-table, 
+  .discussion-block,
+  .mom-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Styles active ONLY during PDF rendering */
+  .rendering-pdf#pdf-export-container {
+    width: 100%;
+    max-width: 750px;
+    margin: 0 auto;
+  }
+
+  .rendering-pdf [contenteditable="true"] {
+    outline: none !important;
+    border: none !important;
+  }
+
+  .rendering-pdf .pdf-title-header {
+    display: block !important;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 14px;
+    color: var(--ink);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 6px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Minutes formatter</h1>
+  <p>Paste or upload raw meeting notes. It comes back structured to match the standard minutes template — edit anything before you export.</p>
+</header>
+
+<main>
+
+  <section class="panel">
+    <h2>Raw minutes</h2>
+    <p class="hint">Choose how you want to bring in the notes.</p>
+
+    <div class="input-tabs">
+      <button type="button" class="active" data-tab="paste">Paste text</button>
+      <button type="button" data-tab="upload">Upload file</button>
+    </div>
+
+    <div id="tab-paste">
+      <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
+    </div>
+
+    <div id="tab-upload" style="display:none;">
+      <div class="drop-zone" id="drop-zone">
+        <p>Drag a .txt or .docx file here, or .pdf</p>
+        <label for="file-input">browse files</label>
+        <input type="file" id="file-input" accept=".txt,.docx,.pdf">
+        <div id="file-name"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="format-btn">Format minutes</button>
+      <span class="status" id="status-text"></span>
+    </div>
+  </section>
+
+    <section class="panel" id="output-panel">
+    <h2>Structured minutes</h2>
+    <p class="hint">Click any field to edit before exporting.</p>
+    
+    <!-- Printable Container -->
+    <div id="pdf-export-container">
+        <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
+        <div id="output-content"></div>
+    </div>
+
+    <div class="export-row">
+        <button class="secondary" id="copy-btn">Copy as text</button>
+        <button class="secondary" id="download-pdf-btn">Download .pdf</button>
+    </div>
+    </section>
+
+</main>
+
+<script>
+  // Initialize PDF.js worker (CDN must match the version in your <head>)
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  // ---- Tab switching between paste / upload ----
+  const tabButtons = document.querySelectorAll('.input-tabs button');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-paste').style.display = btn.dataset.tab === 'paste' ? 'block' : 'none';
+      document.getElementById('tab-upload').style.display = btn.dataset.tab === 'upload' ? 'block' : 'none';
+    });
+  });
+
+  // ---- File upload handling ----
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileNameEl = document.getElementById('file-name');
+  let uploadedFile = null;
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) {
+      uploadedFile = fileInput.files[0];
+      fileNameEl.textContent = 'Selected: ' + uploadedFile.name;
+    }
+  });
+
+  ['dragover', 'dragleave', 'drop'].forEach(evt => {
+    dropZone.addEventListener(evt, e => e.preventDefault());
+  });
+  dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      uploadedFile = e.dataTransfer.files[0];
+      fileNameEl.textContent = 'Selected: ' + uploadedFile.name;
+    }
+  });
+
+  // ---- File Parsers (.txt, .docx, .pdf) ----
+  function readTxtFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  }
+
+  function readDocxFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        mammoth.extractRawText({ arrayBuffer: e.target.result })
+          .then((result) => resolve(result.value))
+          .catch((err) => reject(err));
+      };
+      reader.onerror = (e) => reject(e);
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  async function readPdfFile(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item) => item.str).join(' ');
+      fullText += pageText + '\n';
+    }
+
+    return fullText;
+  }
+
+  async function extractTextFromFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'txt') return await readTxtFile(file);
+    if (ext === 'docx') return await readDocxFile(file);
+    if (ext === 'pdf') return await readPdfFile(file);
+    throw new Error('Unsupported file format');
+  }
+
+  // ---- Format button click handler ----
+  const formatBtn = document.getElementById('format-btn');
+  const statusText = document.getElementById('status-text');
+  const outputPanel = document.getElementById('output-panel');
+  const outputContent = document.getElementById('output-content');
+
+  formatBtn.addEventListener('click', async () => {
+    const activeTab = document.querySelector('.input-tabs button.active').dataset.tab;
+    let textToFormat = '';
+
+    statusText.classList.remove('error');
+
+    try {
+      if (activeTab === 'paste') {
+        textToFormat = document.getElementById('raw-text').value.trim();
+        if (!textToFormat) {
+          statusText.textContent = 'Paste some notes first.';
+          statusText.classList.add('error');
+          return;
+        }
+      } else if (activeTab === 'upload') {
+        if (!uploadedFile) {
+          statusText.textContent = 'Choose a file first.';
+          statusText.classList.add('error');
+          return;
+        }
+        statusText.textContent = 'Reading file…';
+        formatBtn.disabled = true;
+        textToFormat = await extractTextFromFile(uploadedFile);
+      }
+
+      statusText.textContent = 'Formatting…';
+      formatBtn.disabled = true;
+
+      const response = await fetch('/api/format-minutes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rawText: textToFormat })
+      });
+
+      if (!response.ok) throw new Error("Request failed");
+
+      const data = await response.json();
+
+      renderMinutes(data);
+      outputPanel.classList.add('visible');
+      statusText.textContent = 'Done — review and edit below.';
+    } catch (err) {
+      console.error(err);
+      statusText.textContent = 'Something went wrong while reading or formatting. Try again.';
+      statusText.classList.add('error');
+    } finally {
+      formatBtn.disabled = false;
+    }
+  });
+
+  // ---- Render JSON into template ----
+  function renderMinutes(d) {
+    const discussionHtml = d.discussion.map(item => `
+      <div class="discussion-block">
+        <h3>${escapeHtml(item.agendaItem)}</h3>
+        <ul>
+          <li contenteditable="true"><strong>Key discussion points:</strong> ${escapeHtml(item.keyPoints)}</li>
+          <li contenteditable="true"><strong>Decisions made:</strong> ${escapeHtml(item.decisions)}</li>
+        </ul>
+      </div>
+    `).join('');
+
+    const actionRows = d.actionItems.map(a => `
+      <tr>
+        <td contenteditable="true">${escapeHtml(a.task)}</td>
+        <td contenteditable="true">${escapeHtml(a.person)}</td>
+        <td contenteditable="true">${escapeHtml(a.dueDate)}</td>
+        <td contenteditable="true">${escapeHtml(a.status)}</td>
+      </tr>
+    `).join('');
+
+    outputContent.innerHTML = `
+      <table class="mom-table">
+        <tr><th>Meeting title</th><td contenteditable="true">${escapeHtml(d.meetingTitle)}</td></tr>
+        <tr><th>Date</th><td contenteditable="true">${escapeHtml(d.date)}</td></tr>
+        <tr><th>Time</th><td contenteditable="true">${escapeHtml(d.time)}</td></tr>
+        <tr><th>Mode / location</th><td contenteditable="true">${escapeHtml(d.mode)}</td></tr>
+        <tr><th>Attendees</th><td contenteditable="true">${escapeHtml(d.attendees)}</td></tr>
+        <tr><th>Absentees</th><td contenteditable="true">${escapeHtml(d.absentees)}</td></tr>
+        <tr><th>Facilitator</th><td contenteditable="true">${escapeHtml(d.facilitator)}</td></tr>
+        <tr><th>Note taker</th><td contenteditable="true">${escapeHtml(d.noteTaker)}</td></tr>
+        <tr><th>Time allotted</th><td contenteditable="true">${escapeHtml(d.timeAllotted)}</td></tr>
+      </table>
+
+      <h3 style="font-size:15px; margin: 0 0 10px;">Discussion</h3>
+      ${discussionHtml}
+
+      <h3 style="font-size:15px; margin: 20px 0 10px;">Action items</h3>
+      <table class="mom-table" id="action-items-table">
+        <tr><th>Task</th><th>Person responsible</th><th>Due date</th><th>Status</th></tr>
+        ${actionRows}
+      </table>
+
+      <table class="mom-table">
+        <tr><th>Meeting adjourned at</th><td contenteditable="true">${escapeHtml(d.adjournedAt)}</td></tr>
+      </table>
+    `;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  // ---- Copy / Export ----
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const text = outputContent.innerText;
+    navigator.clipboard.writeText(text);
+    statusText.textContent = 'Copied to clipboard.';
+    statusText.classList.remove('error');
+  });
+
+document.getElementById('download-pdf-btn').addEventListener('click', async () => {
+  const element = document.getElementById('pdf-export-container');
+  const statusText = document.getElementById('status-text');
+  const pdfBtn = document.getElementById('download-pdf-btn');
+
+  pdfBtn.disabled = true;
+  statusText.textContent = 'Generating PDF…';
+
+  element.classList.add('rendering-pdf');
+
+  const options = {
+    margin:       [10, 10, 10, 10], // Slightly smaller margins
+    filename:     'Meeting_Minutes.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { 
+      scale: 2, 
+      useCORS: true, 
+      logging: false,
+      scrollX: 0,   // Prevents blank page offset
+      scrollY: 0    // Prevents content shifting
+    },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    // Enable smart page breaks for multi-page documents
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  try {
+    await html2pdf().set(options).from(element).save();
+    statusText.textContent = 'PDF downloaded successfully!';
+  } catch (err) {
+    console.error('PDF generation error:', err);
+    statusText.textContent = 'Failed to generate PDF.';
+    statusText.classList.add('error');
+  } finally {
+    element.classList.remove('rendering-pdf');
+    pdfBtn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>
