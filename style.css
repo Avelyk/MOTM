@@ -341,29 +341,41 @@ input:focus {
 }
 
 .actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 18px;
+  text-align: center;
+  margin-top: 26px;
 }
 
-button.primary {
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  background: var(--accent);
-  color: #fff;
+.primary {
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 293px;
+  background: var(--navy);
+  color: white;
+  padding: 11px 20px;
+  border-radius: 7px;
   border: none;
-  padding: 11px 22px;
-  border-radius: 4px;
   cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
-button.primary:disabled {
-  background: #a9b8ae;
+.primary:hover {
+    background: var(--navy-dark);
+}
+
+.primary:active {
+    transform: translateY(1px);
+}
+
+.primary:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
+.status.error {
+    color: var(--danger);
+}
 
 #footer {
     width: 100%;
