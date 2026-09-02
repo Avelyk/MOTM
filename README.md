@@ -15,7 +15,7 @@ Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
    cd MOTM
    
 Install dependencies:
-Bash
+```bash
 npm install 
 
 
@@ -26,10 +26,10 @@ Plaintext
 
 
 Run the local server:
-Bash
+```bash
 node index.js
 
 
 Open your browser and navigate to:
-Plaintext
+```Plaintext
 http://localhost:3000
