@@ -28,129 +28,130 @@
 
 <main id="main-container">
 
-  <div id="rawMinutes">
-    <section class="panel">
+  <section class="panel">
+    <div class="section-head">
       <h3>Raw Minutes</h3>
       <p>Selected your preffered input format to extract and format</p>
-      <div class="input-tabs">
-        <button type="button" class="tab active" id="text-tab" data-tab="paste">TEXT</button>
-        <button type="button" class="tab" id="file-tab" data-tab="upload">FILE</button>
-        <button type="button" class="tab" id="link-tab" data-tab="upload">LINK</button>
-        <button type="button" class="tab" id="input-tab" data-tab="upload">INPUT</button>
+    </div>
+    <div class="input-tabs">
+      <button type="button" class="tab active" id="text-tab" data-tab="paste">TEXT</button>
+      <button type="button" class="tab" id="file-tab" data-tab="upload">FILE</button>
+      <button type="button" class="tab" id="link-tab" data-tab="upload">LINK</button>
+      <button type="button" class="tab" id="input-tab" data-tab="upload">INPUT</button>
+    </div>
+
+    <div id="tab-paste">
+      <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
+    </div>
+
+    <div id="tab-upload" style="display:none;">
+      <div class="drop-zone" id="drop-zone">
+        <p>Drag a .txt or .docx file here, or .pdf</p>
+        <label for="file-input">browse files</label>
+        <input type="file" id="file-input" accept=".txt,.docx,.pdf">
+        <div id="file-name"></div>
       </div>
-  
-      <div id="tab-paste">
-        <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
+    </div>
+
+    <div class="docu-section">
+      <h2>Documentation / Photos</h2>
+      <p class="hint">Attach images (e.g. whiteboard notes, attendance sheets, photos) to include in the formatted result.</p>
+      <div class="docu-upload-box">
+        <label for="docu-file-input">Click here to add images</label>
+        <input type="file" id="docu-file-input" accept="image/*" multiple>
+        <span style="font-size: 12px; color: var(--ink-soft);">Supports PNG, JPG, JPEG</span>
       </div>
-  
-      <div id="tab-upload" style="display:none;">
-        <div class="drop-zone" id="drop-zone">
-          <p>Drag a .txt or .docx file here, or .pdf</p>
-          <label for="file-input">browse files</label>
-          <input type="file" id="file-input" accept=".txt,.docx,.pdf">
-          <div id="file-name"></div>
-        </div>
-      </div>
-  
-      <div class="docu-section">
-        <h2>Documentation / Photos</h2>
-        <p class="hint">Attach images (e.g. whiteboard notes, attendance sheets, photos) to include in the formatted result.</p>
-        <div class="docu-upload-box">
-          <label for="docu-file-input">Click here to add images</label>
-          <input type="file" id="docu-file-input" accept="image/*" multiple>
-          <span style="font-size: 12px; color: var(--ink-soft);">Supports PNG, JPG, JPEG</span>
-        </div>
-        <div id="docu-preview-grid" class="docu-preview-grid"></div>
-      </div>
-  
-      <div class="actions">
-        <button class="primary" id="format-btn">Format minutes</button>
-        <span class="status" id="status-text"></span>
-      </div>
-    </section>
-  
-    <section class="panel" id="output-panel">
+      <div id="docu-preview-grid" class="docu-preview-grid"></div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="format-btn">Format minutes</button>
+      <span class="status" id="status-text"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="output-panel">
+    <div class="section-head">
       <h2>Structured minutes</h2>
-      <p class="hint">Click any field to edit before exporting.</p>
-      <div id="pdf-export-container">
-        <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
-        <div id="output-content"></div>
+      <p>Click any field to edit before exporting.</p>
+    </div>
+    <div id="pdf-export-container">
+      <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
+      <div id="output-content"></div>
+    </div>
+
+    <div class="export-row">
+      <button class="secondary" id="copy-btn">Copy as text</button>
+      
+      <div class="download-group">
+        <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
+        <button class="secondary" id="download-pdf-btn">Download .pdf</button>
       </div>
-  
-      <div class="export-row">
-        <button class="secondary" id="copy-btn">Copy as text</button>
-        
-        <div class="download-group">
-          <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
-          <button class="secondary" id="download-pdf-btn">Download .pdf</button>
-        </div>
+    </div>
+  </section>
+  <section class="panel">
+   <h3>Formatted Minutes</h3>
+   <p>Review and Finalize before exporting</p>
+    <div class="input-tabs">
+      <button type="button" class="active" data-tab="paste">TEXT</button>
+      <button type="button" data-tab="upload">FILE</button>
+      <button type="button" data-tab="upload">LINK</button>
+      <button type="button" data-tab="upload">INPUT</button>
+    </div>
+
+    <div id="tab-paste">
+      <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
+    </div>
+
+    <div id="tab-upload" style="display:none;">
+      <div class="drop-zone" id="drop-zone">
+        <p>Drag a .txt or .docx file here, or .pdf</p>
+        <label for="file-input">browse files</label>
+        <input type="file" id="file-input" accept=".txt,.docx,.pdf">
+        <div id="file-name"></div>
       </div>
-    </section>
-  </div>
-  <div id="formattedMinutes">
-    <section class="panel">
-     <h3>Formatted Minutes</h3>
-     <p>Review and Finalize before exporting</p>
-      <div class="input-tabs">
-        <button type="button" class="active" data-tab="paste">TEXT</button>
-        <button type="button" data-tab="upload">FILE</button>
-        <button type="button" data-tab="upload">LINK</button>
-        <button type="button" data-tab="upload">INPUT</button>
+    </div>
+
+    <div class="docu-section">
+      <h2>Documentation / Photos</h2>
+      <p class="hint">Attach images (e.g. whiteboard notes, attendance sheets, photos) to include in the formatted result.</p>
+      <div class="docu-upload-box">
+        <label for="docu-file-input">Click here to add images</label>
+        <input type="file" id="docu-file-input" accept="image/*" multiple>
+        <span style="font-size: 12px; color: var(--ink-soft);">Supports PNG, JPG, JPEG</span>
       </div>
-  
-      <div id="tab-paste">
-        <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
+      <div id="docu-preview-grid" class="docu-preview-grid"></div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="format-btn">Format minutes</button>
+      <span class="status" id="status-text"></span>
+    </div>
+  </section>
+
+  <section class="panel" id="output-panel">
+    <h2>Structured minutes</h2>
+    <p class="hint">Click any field to edit before exporting.</p>
+    <div id="pdf-export-container">
+      <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
+      <div id="output-content"></div>
+    </div>
+
+    <div class="export-row">
+      <button class="secondary" id="copy-btn">Copy as text</button>
+      
+      <div class="download-group">
+        <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
+        <button class="secondary" id="download-pdf-btn">Download .pdf</button>
       </div>
-  
-      <div id="tab-upload" style="display:none;">
-        <div class="drop-zone" id="drop-zone">
-          <p>Drag a .txt or .docx file here, or .pdf</p>
-          <label for="file-input">browse files</label>
-          <input type="file" id="file-input" accept=".txt,.docx,.pdf">
-          <div id="file-name"></div>
-        </div>
-      </div>
-  
-      <div class="docu-section">
-        <h2>Documentation / Photos</h2>
-        <p class="hint">Attach images (e.g. whiteboard notes, attendance sheets, photos) to include in the formatted result.</p>
-        <div class="docu-upload-box">
-          <label for="docu-file-input">Click here to add images</label>
-          <input type="file" id="docu-file-input" accept="image/*" multiple>
-          <span style="font-size: 12px; color: var(--ink-soft);">Supports PNG, JPG, JPEG</span>
-        </div>
-        <div id="docu-preview-grid" class="docu-preview-grid"></div>
-      </div>
-  
-      <div class="actions">
-        <button class="primary" id="format-btn">Format minutes</button>
-        <span class="status" id="status-text"></span>
-      </div>
-    </section>
-  
-    <section class="panel" id="output-panel">
-      <h2>Structured minutes</h2>
-      <p class="hint">Click any field to edit before exporting.</p>
-      <div id="pdf-export-container">
-        <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
-        <div id="output-content"></div>
-      </div>
-  
-      <div class="export-row">
-        <button class="secondary" id="copy-btn">Copy as text</button>
-        
-        <div class="download-group">
-          <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
-          <button class="secondary" id="download-pdf-btn">Download .pdf</button>
-        </div>
-      </div>
-    </section>
-  </div>
+    </div>
+  </section>
 </main>
 
-<footer>
-  <h4>Built by GDGC Xavier University Ateneo de Cagdayan. Streamlining meeting
-  minutes for organizers.</h4>
+<footer class="footer">
+  <p id="footer"> Built by GDGC Xavier University – Ateneo de Cagayan. Streamlining meeting <br> minutes for organizers. 
+    <img src="GDGC_Logo_Footer.webp" id="footerLogo" alt="GDGC Logo">
+  </p>
 </footer>
 
 <script>
