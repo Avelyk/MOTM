@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import { GoogleGenAI, Type } from '@google/genai';
-
+const PORT = process.env.PORT || 3000;
 const app = express();
 const ai = new GoogleGenAI();
 
@@ -52,6 +52,10 @@ const minutesSchema = {
   required: ["meetingTitle", "date", "time", "discussion", "actionItems"]
 };
 
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
 app.post('/api/format-minutes', async (req, res) => {
   try {
     const { rawText } = req.body;
@@ -89,9 +93,4 @@ app.post('/api/format-minutes', async (req, res) => {
     console.error("Error generating minutes:", error);
     res.status(500).json({ error: "Failed to format minutes" });
   }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
 });
