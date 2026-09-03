@@ -61,7 +61,7 @@
       <div class="docu-upload-box">
         <label for="docu-file-input">Add Images...</label>
         <input type="file" id="docu-file-input" accept="image/*" multiple>
-        <span style="font-size: 9px; color: var(--navy); font-weight: 600;">Allows PNG, JPG, JPEG</span>
+        <span style="font-size: 9px; color: var(--navy-light); font-weight: 600;">Allows PNG, JPG, JPEG</span>
       </div>
       <div id="docu-preview-grid" class="docu-preview-grid"></div>
     </div>
@@ -85,7 +85,12 @@
           <div class="pdf-title-header" style="display: none;">
             Meeting Minutes
           </div>
-          <div id="output-content"></div>
+            <div id="output-content">
+            <div id="results-placeholder">
+                <div class="placeholder-icon">📄</div>
+                <p>Results will show here</p>
+            </div>
+            </div>
         </div>
       </div>
 
@@ -318,14 +323,20 @@
 
   function renderMinutes(d) {
     const discussionHtml = (d.discussion || []).map(item => `
-      <div class="discussion-block">
-        <h3>${escapeHtml(item.agendaItem)}</h3>
-        <ul>
-          <li contenteditable="true"><strong>Key discussion points:</strong> ${escapeHtml(item.keyPoints)}</li>
-          <li contenteditable="true"><strong>Decisions made:</strong> ${escapeHtml(item.decisions)}</li>
-        </ul>
-      </div>
-    `).join('');
+    <div class="discussion-block">
+      <h3 style="font-size: 14px; margin: 0 0 6px 0; font-weight: bold; color: #000;">
+        ${escapeHtml(item.agendaItem)}
+      </h3>
+      <ul style="margin: 0 0 0 20px; padding: 0;">
+        <li style="margin-bottom: 4px;" contenteditable="true">
+          <strong>Key discussion points:</strong> ${escapeHtml(item.keyPoints)}
+        </li>
+        <li contenteditable="true">
+          <strong>Decisions made:</strong> ${escapeHtml(item.decisions)}
+        </li>
+      </ul>
+    </div>
+`).join('');
 
     const actionRows = (d.actionItems || []).map(a => `
       <tr>
@@ -336,51 +347,126 @@
       </tr>
     `).join('');
 
-    let documentationHtml = '';
-    if (documentationImages.length > 0) {
-      const imageCards = documentationImages.map(img => `
+    let docuContent = '';
+    if (typeof documentationImages !== 'undefined' && documentationImages && documentationImages.length > 0) {
+        const imageCards = documentationImages.map(img => `
         <div class="docu-output-card">
-          <img src="${img}" alt="Documentation Photo">
+            <img src="${img}" alt="Documentation Photo">
         </div>
-      `).join('');
-
-      documentationHtml = `
-        <h3 style="font-size:15px; margin: 20px 0 10px;">Documentation</h3>
-        <div class="docu-output-grid">
-          ${imageCards}
-        </div>
-      `;
+        `).join('');
+        docuContent = `<div class="docu-output-grid">${imageCards}</div>`;
+    } else {
+        docuContent = `<p style="margin: 0;">—</p>`;
     }
 
     outputContent.innerHTML = `
-      <table class="mom-table">
-        <tr><th>Meeting title</th><td contenteditable="true">${escapeHtml(d.meetingTitle)}</td></tr>
-        <tr><th>Date</th><td contenteditable="true">${escapeHtml(d.date)}</td></tr>
-        <tr><th>Time</th><td contenteditable="true">${escapeHtml(d.time)}</td></tr>
-        <tr><th>Mode / location</th><td contenteditable="true">${escapeHtml(d.mode)}</td></tr>
-        <tr><th>Attendees</th><td contenteditable="true">${escapeHtml(d.attendees)}</td></tr>
-        <tr><th>Absentees</th><td contenteditable="true">${escapeHtml(d.absentees)}</td></tr>
-        <tr><th>Facilitator</th><td contenteditable="true">${escapeHtml(d.facilitator)}</td></tr>
-        <tr><th>Note taker</th><td contenteditable="true">${escapeHtml(d.noteTaker)}</td></tr>
-        <tr><th>Time allotted</th><td contenteditable="true">${escapeHtml(d.timeAllotted)}</td></tr>
-      </table>
+            <div class="document-header">
+            <div class="document-header-left">
+                <div class="doc-title-gdg">
+                <span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span> Developer Groups<br>
+                On Campus Xavier Ateneo
+                </div>
+                <div class="doc-sub-address">
+                Xavier University - Ateneo de Cagayan Corrales Ave., Cagayan de Oro City
+                </div>
+            </div>
+            <div class="document-header-right">
+                <img src="GDGC_Logo.png" alt="GDGC Logo">
+            </div>
+            </div>
 
-      <h3 style="font-size:15px; margin: 0 0 10px;">Discussion</h3>
-      ${discussionHtml}
+        <table class="mom-table">
+            <tr>
+            <th colspan="4" style="text-align: center; background-color: #575757; color:white; border: 1px solid #575757 !important;">MINUTES OF THE MEETING</th>
+            </tr>
 
-      <h3 style="font-size:15px; margin: 20px 0 10px;">Action items</h3>
-      <table class="mom-table" id="action-items-table">
-        <tr><th>Task</th><th>Person responsible</th><th>Due date</th><th>Status</th></tr>
-        ${actionRows}
-      </table>
+            <tr>
+            <th style="background-color: #D9D9D9; border-right: 3px solid #545454 !important; width: 25%;"><b>Meeting Details</b></th>
+            <td colspan="3" style="background-color: #F5F5F5; width: 75%;">Details</td>
+            </tr>
 
-      <table class="mom-table">
-        <tr><th>Meeting adjourned at</th><td contenteditable="true">${escapeHtml(d.adjournedAt)}</td></tr>
-      </table>
+            <tr>
+            <th style="background-color: #FCE8E6; border-right: 3px solid #EA4336 !important; width: 25%;">Meeting title</th>
+            <td colspan="3" style="width: 75%;" contenteditable="true">${escapeHtml(d.meetingTitle)}</td>
+            </tr>
 
-      ${documentationHtml}
+            <tr>
+            <th style="background-color: #D2E2FC; border-right: 3px solid #4285F4 !important; width: 25%;">Date</th>
+            <td style="width: 25%;" contenteditable="true">${escapeHtml(d.date)}</td>
+            <th style="background-color: #D2E2FC; border-right: 3px solid #4285F4 !important; width: 25%;">Time</th>
+            <td style="width: 25%;" contenteditable="true">${escapeHtml(d.time)}</td>
+            </tr>
+
+            <tr>
+            <th style="background-color: #FEF7E0; border-right: 3px solid #FABD05 !important; width: 25%;">Mode / location</th>
+            <td colspan="3" style="width: 75%;" contenteditable="true">${escapeHtml(d.mode)}</td>
+            </tr>
+
+            <tr>
+            <th style="background-color: #E6F4EA; border-right: 3px solid #34A852 !important; width: 25%;">Attendees</th>
+            <td colspan="3" style="width: 75%;" contenteditable="true">${escapeHtml(d.attendees)}</td>
+            </tr>
+
+            <tr>
+            <th style="background-color: #FFF5EC; border-right: 3px solid #FF914D !important; width: 25%;">Absentees</th>
+            <td colspan="3" style="width: 75%;" contenteditable="true">${escapeHtml(d.absentees)}</td>
+            </tr>
+
+            <tr>
+            <th rowspan="2" style="background-color: #F7DCFF; border-right: 3px solid #CB6CE6 !important; vertical-align: middle; width: 25%;">Roles</th>
+            <td colspan="3" style="width: 75%;" contenteditable="true">Facilitator: ${escapeHtml(d.facilitator)}</td>
+            </tr>
+            <tr>
+            <td colspan="3" style="width: 75%;" contenteditable="true">Note taker: ${escapeHtml(d.noteTaker)}</td>
+            </tr>
+
+            <tr>
+            <th style="background-color: #FFE2F4; border-right: 3px solid #FF66C4 !important; width: 25%;">Time allotted</th>
+            <td colspan="3" style="width: 75%;" contenteditable="true">${escapeHtml(d.timeAllotted)}</td>
+            </tr>
+        </table>
+
+            <table class="mom-table" style="margin-top: 15px;">
+            <tr>
+                <th colspan="4" style="text-align: center; background-color: #777777; color: white; font-size: 13px; letter-spacing: 0.5px; border: 1px solid #777777 !important;">
+                DISCUSSION
+                </th>
+            </tr>
+            <tr>
+                <td colspan="4" style="background-color: #ffffff; padding: 15px;">
+                ${discussionHtml}
+                </td>
+            </tr>
+            </table>
+
+        <table class="mom-table" id="action-items-table" style="margin-top: 15px;">
+            <tr>
+            <th colspan="4" style="text-align: center; background-color: #777777; color: white; font-size: 13px; letter-spacing: 0.5px; border: 1px solid #777777 !important;">ACTION ITEMS</th>
+            </tr>
+            <tr>
+            <th style="background-color: #FCE8E6; border-bottom: 3px solid #EA4336 !important; width: 25%;">Task</th>
+            <th style="background-color: #D2E2FC; border-bottom: 3px solid #4285F4 !important; width: 25%;">Person responsible</th>
+            <th style="background-color: #E6F4EA; border-bottom: 3px solid #34A852 !important; width: 25%;">Due date</th>
+            <th style="background-color: #FEF7E0; border-bottom: 3px solid #FABD05 !important; width: 25%;">Status</th>
+            </tr>
+            ${actionRows}
+            <tr>
+            <th style="background-color: #E6F4EA; border-right: 3px solid #34A852 !important; width: 25%;">Meeting adjourned at</th>
+            <td colspan="3" style="width: 75%;" contenteditable="true">${escapeHtml(d.adjournedAt)}</td>
+            </tr>
+        </table>
+
+        <table class="mom-table" style="margin-top: 15px;">
+            <tr>
+            <th style="background-color: #E8F0FE; border-right: 3px solid #1A73E8 !important; vertical-align: top; width: 25%;">
+                Documentation / Photos
+            </th>
+            <td colspan="3" style="width: 75%;" contenteditable="true">
+                ${docuContent}
+            </td>
+            </tr>
+        </table>
     `;
-
     const filenameInput = document.getElementById('filename-input');
     if (filenameInput) {
       const rawTitle = d.meetingTitle && d.meetingTitle !== '—' ? d.meetingTitle : 'Meeting_Minutes';
@@ -449,6 +535,5 @@
     }
   });
 </script>
-
 </body>
 </html>

@@ -11,6 +11,7 @@
     --tab-green: #119b55;
     --tab-yellow: #f4b400;
     --muted: #555555;
+    --navy-light: #7b9ec8;
     --navy: #063b82;
     --navy-dark: #05336f;
     
@@ -28,6 +29,9 @@ body {
   background: var(--paper);
   color: var(--ink);
   line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .header {
@@ -91,6 +95,7 @@ body {
       minmax(0, 1fr);
   gap: 55px;
   align-items: start;
+  flex: 1;
 }
 
 .section-head {
@@ -182,7 +187,7 @@ body {
 }
 
 #raw-text::placeholder{
-   color: var(--navy);
+    color: var(--navy-light);
     opacity: 1;
     font-weight: 600;
 }
@@ -419,28 +424,37 @@ input:focus {
   border-bottom: 2px solid var(--accent);
 }
 
-#footer {
+footer, .footer {
   width: 100%;
-  min-height: 104px;
-  padding: 14px 20px;
+  margin-top: auto; 
   background: var(--navy);
   color: white;
+  padding: 8px 20px;
   text-align: center;
+}
+
+#footer {
+  width: 0;
+  padding: 0;
+  width: 100%;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
 }
 
 #footer p {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  font-weight: 600;
 }
 
 #footerLogo {
-  height: 70px;
+  height: 40px;
+  width: auto;
+  display: block;
 }
 
 .status {
@@ -457,17 +471,29 @@ input:focus {
 */
 .mom-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: collapse !important;
   font-size: 14px;
   margin-bottom: 20px;
 }
 
-.mom-table th, .mom-table td {
-  border: 1px solid var(--line);
+.mom-table th, 
+.mom-table td {
+  border: 1px solid var(--line) !important;
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;
 }
+
+.mom-table th[style*="border-right"] {
+  border-right-width: 3px !important;
+  border-right-style: solid !important;
+}
+.mom-table th[style*="border-bottom"] {
+  border-bottom-width: 3px !important;
+  border-bottom-style: solid !important;
+}
+
+
 
 .mom-table th {
   background: var(--accent-soft);
@@ -482,10 +508,15 @@ input:focus {
 }
 
 .discussion-block {
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 16px;
-  margin-bottom: 14px;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin-bottom: 12px !important;
+  box-shadow: none !important;
+}
+
+.discussion-block:last-child {
+  margin-bottom: 0;
 }
 
 .discussion-block h3 {
@@ -591,9 +622,6 @@ input:focus {
   outline-offset: 1px;
 }
 
-
-/* ---- PDF Export Fixes & Rules ---- */
-
 #pdf-export-container {
   padding: 0;
   background: #ffffff;
@@ -620,11 +648,82 @@ input:focus {
 }
 
 .rendering-pdf .pdf-title-header {
-  display: block !important;
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 14px;
-  color: var(--ink);
-  border-bottom: 2px solid var(--accent);
-  padding-bottom: 6px;
+  display: none !important;
+}
+
+.rendering-pdf .mom-table th,
+.rendering-pdf .mom-table td {
+  border-top: 1px solid #d8d5c9 !important;
+  border-left: 1px solid #d8d5c9 !important;
+  border-right: 1px solid #d8d5c9 !important;
+  border-bottom: 1px solid #d8d5c9 !important;}
+
+.rendering-pdf .mom-table th[style*="border-right"] {
+  border-right-width: 3px !important;
+  border-right-style: solid !important;
+}
+
+/* Enforce thick colored bottom accents in PDF render */
+.rendering-pdf .mom-table th[style*="border-bottom"] {
+  border-bottom-width: 3px !important;
+  border-bottom-style: solid !important;
+}
+
+.document-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+}
+
+.doc-title-gdg {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #4a4a4a;
+  margin-bottom: 12px;
+}
+
+.doc-sub-address {
+  font-size: 11px;
+  color: #777777;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+}
+
+/* Google Brand Colors */
+.g-blue { color: #4285F4; }
+.g-red { color: #EA4336; }
+.g-yellow { color: #FBBC05; }
+.g-green { color: #34A852; }
+
+.document-header-right img {
+  height: 85px;
+  width: auto;
+  display: block;
+}
+
+#results-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 250px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.placeholder-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+#results-placeholder p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy-light);
 }
