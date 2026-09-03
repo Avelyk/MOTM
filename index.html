@@ -40,9 +40,12 @@
       <button type="button" class="tab" id="input-tab" data-tab="upload">INPUT</button>
     </div>
 
-    <div id="raw-input-container">
-      <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
+    <div id="tab-paste">
+      <div id="raw-input-container">
+        <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
+      </div>
     </div>
+
 
     <div id="tab-upload" style="display:none;">
       <div class="drop-zone" id="drop-zone">
@@ -69,82 +72,58 @@
     </div>
   </section>
 
-  <section class="panel" id="output-panel">
-    <div class="section-head">
-      <h2>Structured minutes</h2>
-      <p>Click any field to edit before exporting.</p>
-    </div>
-    <div id="pdf-export-container">
-      <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
-      <div id="output-content"></div>
+  <section class="panel" id="formatted-section">
+
+    <div class="section-heading">
+      <h2>Formatted Minutes</h2>
+      <p>Review and finalize before exporting</p>
     </div>
 
-    <div class="export-row">
-      <button class="secondary" id="copy-btn">Copy as text</button>
-      
-      <div class="download-group">
-        <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
-        <button class="secondary" id="download-pdf-btn">Download .pdf</button>
+    <div id="output-panel">
+      <div class="formatted-preview">
+        <div id="pdf-export-container">
+          <div class="pdf-title-header" style="display: none;">
+            Meeting Minutes
+          </div>
+          <div id="output-content"></div>
+        </div>
+      </div>
+
+      <div class="export-container">
+
+        <button class="export-button" id="copy-btn">
+          <span>▣</span>
+          Copy Text
+        </button>
+
+        <div class="download-group">
+          <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
+            <button class="export-button" id="download-pdf-btn"> <span>⇩</span> Download PDF</button>
+        </div>
       </div>
     </div>
   </section>
-  <section class="panel">
-   <h3>Formatted Minutes</h3>
-   <p>Review and Finalize before exporting</p>
-    <div class="input-tabs">
-      <button type="button" class="active" data-tab="paste">TEXT</button>
-      <button type="button" data-tab="upload">FILE</button>
-      <button type="button" data-tab="upload">LINK</button>
-      <button type="button" data-tab="upload">INPUT</button>
-    </div>
-
-    <div id="tab-paste">
-      <textarea id="raw-text" placeholder="e.g. attendees juan maria pao, discussed the event budget, decided to move it to sept 20, juan to send the poster draft by friday..."></textarea>
-    </div>
-
-    <div id="tab-upload" style="display:none;">
-      <div class="drop-zone" id="drop-zone">
-        <p>Drag a .txt or .docx file here, or .pdf</p>
-        <label for="file-input">browse files</label>
-        <input type="file" id="file-input" accept=".txt,.docx,.pdf">
-        <div id="file-name"></div>
+  <!--
+    <section class="panel" id="output-panel">
+      <div class="section-head">
+        <h2>Structured minutes</h2>
+        <p>Click any field to edit before exporting.</p>
       </div>
-    </div>
-
-    <div class="docu-section">
-      <h2>Documentation / Photos</h2>
-      <p class="hint">Attach images (e.g. whiteboard notes, attendance sheets, photos) to include in the formatted result.</p>
-      <div class="docu-upload-box">
-        <label for="docu-file-input">Click here to add images</label>
-        <input type="file" id="docu-file-input" accept="image/*" multiple>
-        <span style="font-size: 12px; color: var(--ink-soft);">Supports PNG, JPG, JPEG</span>
+      <div id="pdf-export-container">
+        <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
+        <div id="output-content"></div>
       </div>
-      <div id="docu-preview-grid" class="docu-preview-grid"></div>
-    </div>
-
-    <div class="actions">
-      <button class="primary" id="format-btn">Format minutes</button>
-      <span class="status" id="status-text"></span>
-    </div>
-  </section>
-
-  <section class="panel" id="output-panel">
-    <h2>Structured minutes</h2>
-    <p class="hint">Click any field to edit before exporting.</p>
-    <div id="pdf-export-container">
-      <div class="pdf-title-header" style="display:none;">Meeting Minutes</div>
-      <div id="output-content"></div>
-    </div>
-
-    <div class="export-row">
-      <button class="secondary" id="copy-btn">Copy as text</button>
-      
-      <div class="download-group">
-        <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
-        <button class="secondary" id="download-pdf-btn">Download .pdf</button>
+  
+      <div class="export-row">
+        <button class="secondary" id="copy-btn">Copy as text</button>
+        
+        <div class="download-group">
+          <input type="text" id="filename-input" class="filename-input" placeholder="Meeting_Minutes">
+          <button class="secondary" id="download-pdf-btn">Download .pdf</button>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  -->
 </main>
 
 <footer class="footer">
